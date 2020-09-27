@@ -48,6 +48,7 @@ class AcademicYearController extends Controller
         $validator = validator($request->all(), [
             'start_date' => 'required|unique:academic_years,start_date',
             'end_date' => 'required|unique:academic_years,end_date',
+            'name' => 'unique:academic_years,name',
         ]);
 
         if ($validator->fails()) {
@@ -56,11 +57,15 @@ class AcademicYearController extends Controller
         try {
             $data = $request->all();
             $data['name'] = date('Y', strtotime($data['start_date'])) . "-" . date('Y', strtotime($data['end_date']));
+
+        
+
+
             $academic_years_name = AcademicYear::all()->pluck('name');
             $academic_years_name = $academic_years_name->toArray();
 
             if (in_array($data['name'], $academic_years_name)) {
-                return responseJson(0, __('this academic year is already exists'), null);
+                return responseJson(0, 'name'->__('this academic year is already exists'), "");
 
             } else {
                 $academic_year = AcademicYear::create($data);

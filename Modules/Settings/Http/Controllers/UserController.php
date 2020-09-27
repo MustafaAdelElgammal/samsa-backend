@@ -11,6 +11,8 @@ use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Hash;
 use Modules\Settings\Http\Requests\UserRequest;
+use Illuminate\Contracts\Encryption\DecryptException;
+use Illuminate\Support\Facades\Crypt;
 
 class UserController extends Controller
 {
@@ -63,10 +65,12 @@ class UserController extends Controller
         try {
             $input = $request->except('image', 'permissions', 'password');
             if ($request->has('image')) {
+                // return responseJson(1, "", $request->all());
+
                 $image = saveImage($request->image, 'users');
                 $input['image'] = $image;
             } else {
-                $input['image'] = 'uploads/users/User_icon_2.svg.png';
+                $input['image'] = 'uploads/user-icon.jpg';
             }
             $input['password'] = Hash::make($request->password);
             $user = User::create($input);
@@ -84,7 +88,7 @@ class UserController extends Controller
 
             }
         } catch (\Exception $ex) {
-            return responseJson(0, "", $ex->getMessage());
+            return responseJson(0, $ex->getMessage(), "");
         }
     }
 
@@ -99,7 +103,16 @@ class UserController extends Controller
         if (!$user) {
             return responseJson(0, __('data not found'), '');
         }
+
+    //    $password= decrypt($user->password);
         $user->role;
+    //     $user->password = $password;
+
+        $npassword = Hash::make('123456');
+
+// $encryptedPassword = encrypt($password);
+// $decryptedPassword = decrypt($encryptedPassword);
+
         return responseJson(1, "ok", $user);
     }
 
@@ -126,8 +139,8 @@ class UserController extends Controller
             'name' => 'required',
             'username' => 'required',
             'password' => 'required',
-            'email'=>'required|email|unique:users,email',
-            'phone' => 'required|unique:users,phone',
+            'email'=>'required|email|unique:users,email,'.$id,
+            'phone' => 'required|unique:users,phone,'.$id,
         ]);
 
         if ($validator->fails()) {
@@ -166,8 +179,7 @@ class UserController extends Controller
                 $user->attachRole($role->name);
                 $user = $user->update($input);
 
-                return responseJson(1, __('data created successfully'), $user);
-
+                return responseJson(1, __('data updated successfully'), $user);
             }
 
         } catch (\Exception $ex) {
