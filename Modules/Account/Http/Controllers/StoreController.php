@@ -20,7 +20,7 @@ class StoreController extends Controller
      * @return json
      */
     public function index() {
-        $resources = Store::get();
+        $resources = Store::latest()->get();
         return $resources;
     }
  
@@ -35,7 +35,7 @@ class StoreController extends Controller
               
             //return dump(toClass($data)->api_token);
             $validator = validator($request->json()->all(), [
-                "name" =>  "required|unique:account_Stores",  
+                "name" =>  "required|unique:account_stores",  
                 "init_balance" =>  "required", 
             ], [
                 "name.unique" => __('name already exist'), 
@@ -81,10 +81,10 @@ class StoreController extends Controller
      * @param int $id
      * @return Response
      */
-    public function destroy(Store $Store) { 
+    public function destroy(Store $store) { 
         try { 
-            watch(__('remove Store ') . $Store->name, "fa fa-trophy"); 
-           
+            watch(__('remove Store ') . $store->name, "fa fa-trophy"); 
+            $store->delete();
         } catch (\Exception $th) {
             return responseJson(0, $th->getMessage());
         }

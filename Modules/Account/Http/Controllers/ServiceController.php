@@ -20,7 +20,7 @@ class ServiceController extends Controller
      * @return json
      */
     public function index() {
-        $resources = Service::with(['level', 'division'])->get();
+        $resources = Service::with(['level', 'division', 'store'])->latest()->get();
         return $resources;
     }
  
@@ -48,8 +48,7 @@ class ServiceController extends Controller
             if ($validator->fails()) {
                 return responseJson(0, $validator->errors()->first());
             }
-            $data = $request->all();
-            $data['store_id'] = 11;
+            $data = $request->all(); 
              
             $resource = Service::create($data); 
             watch(__('add service ') . $resource->name, "fa fa-trophy");
