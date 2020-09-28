@@ -93,4 +93,13 @@ Route::put('constraint-status/{id}', 'ConstraintStatusController@update');
     Route::get('translation', 'TranslationController@index');
     Route::get('translation/get', 'TranslationController@get');
     Route::post('translation/update', 'TranslationController@update');
+    
+
+    //registration status
+    Route::get('registration-status', 'RegisterationStatusController@index');
+    Route::get('registration-status/{id}', 'RegisterationStatusController@show');
+    Route::post('registration-status', 'RegisterationStatusController@store');
+    Route::delete('registration-status/{id}', 'RegisterationStatusController@destroy');
+    Route::put('registration-status/{id}', 'RegisterationStatusController@update');
+    // end
 });

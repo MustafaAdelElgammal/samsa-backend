@@ -25,11 +25,11 @@ class RegisterationStatusController extends Controller {
     public function index() {
         $registerationStatus = null;
 
-        if (request()->registeration_status_id > 0)
-            $registerationStatus = RegisterationStatus::find(request()->registeration_status_id);
+        // if (request()->registeration_status_id > 0)
+        //     $registerationStatus = RegisterationStatus::find(request()->registeration_status_id);
 
-        $registerationStatuses = RegisterationStatus::OrderBy('created_at', 'desc')->get();
-        return view('settings::registeration_status.index', compact('registerationStatuses', 'registerationStatus'));
+        $registerationStatuses = RegisterationStatus::with(['requiredDocuments'])->OrderBy('created_at', 'desc')->get();
+        return responseJson(1, "ok", $registerationStatuses);
     }
 
     /**
@@ -70,18 +70,25 @@ class RegisterationStatusController extends Controller {
      * @param Request $request
      * @return Response
      */
-    public function store(RegisterationStatusRequest $request) {
+    public function store(Request $request) {
+        $validator = validator($request->all(), [
+            'name'=>'required|unique:registeration_status,name'
+        ]);
+
+        if ($validator->fails()) {
+            return responseJson(0, $validator->errors()->getMessages(), "");
+        }
+
         try {
             $registerationStatus = RegisterationStatus::create($request->all());
             if ($registerationStatus) {
-                notify()->success(__('data created successfully'), "", "bottomLeft");
+                return responseJson(1, __('data created successfully'), $registerationStatus);
             } else {
                 notify()->error("هناك خطأ ما يرجى المحاولة فى وقت لاحق", "", "bottomLeft");
             }
-        } catch (\Exception $th) {
-            notify()->error($th->getMessage(), "", "bottomLeft");
+        } catch (\Exception $ex) {
+            return responseJson(0,  $ex->getMessage(), "");
         }
-        return redirect()->route('registeration-status.index');
     }
 
     /**
@@ -90,7 +97,12 @@ class RegisterationStatusController extends Controller {
      * @return Response
      */
     public function show($id) {
-        return view('settings::show');
+        $registerationStatus = RegisterationStatus::find($id);
+        $registerationStatus->requiredDocuments;
+        if (!$registerationStatus) {
+            return responseJson(0, __('data not found'), '');
+        }
+        return responseJson(1, "ok", $registerationStatus);
     }
 
     /**
@@ -113,19 +125,25 @@ class RegisterationStatusController extends Controller {
      * @param int $id
      * @return Response
      */
-    public function update(RegisterationStatusRequest $request, $id) {
+    public function update(Request $request, $id) {
+        $validator = validator($request->all(), [
+            'name'=>'required|unique:registeration_status,name,'.$id
+        ]);
+
+        if ($validator->fails()) {
+            return responseJson(0, $validator->errors()->getMessages(), "");
+        }
         try {
             $registerationStatus = RegisterationStatus::find($id);
             if (!$registerationStatus) {
-                notify()->warning(__('data not found'), "", "bottomLeft");
+                return responseJson(0, __('data not found'), '');
             } else {
                 $registerationStatus->update($request->all());
-                notify()->success(__('data updated successfully'), "", "bottomLeft");
+                return responseJson(1, __('data updated successfully'), $registerationStatus);
             }
         } catch (\Exception $ex) {
-            notify()->error($ex->getMessage(), "", "bottomLeft");
+            return responseJson(0, "", $ex->getMessage());
         }
-        return redirect()->route('registeration-status.index');
     }
 
     /**
@@ -137,14 +155,13 @@ class RegisterationStatusController extends Controller {
         try {
             $registerationStatus = RegisterationStatus::find($id);
             if (!$registerationStatus) {
-                notify()->warning(__('data not found'), "", "bottomLeft");
+                return responseJson(0, __('data not found'), '');
             }
             $registerationStatus->delete();
-            notify()->success(__('data deleted successsfully'), "", "bottomLeft");
-        } catch (\Exception $ex) {
-            notify()->error($ex->getMessage(), "", "bottomLeft");
+            return responseJson(1, __('deleted successfully'), '');
+        }catch (\Exception $ex) {
+            return responseJson(0, "", $ex->getMessage());
         }
-        return redirect()->route('registeration-status.index');
     }
 
 }

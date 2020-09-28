@@ -14,7 +14,8 @@ class RegisterationStatusDocument extends Model
         'registeration_status_id',	
         'required_document_id'  
     ];
-    
+    protected $hidden = ['created_at', 'updated_at'];
+
     
     public function registerationStatus() {
         return $this->belongsTo('Modules\Settings\Entities\RegisterationStatus', 'registeration_status_id');
