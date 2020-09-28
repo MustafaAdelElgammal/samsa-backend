@@ -93,11 +93,11 @@ class RoleController extends Controller
     public function show($id)
     {
         $role = Role::find($id);
-       
+        // $role->permissions;
         if (!$role) {
             return responseJson(0, __('data not found'), '');
         }
-        return responseJson(1, "ok", $role);
+        return responseJson(1, "ok", $role->permissions());
     }
 
     /**

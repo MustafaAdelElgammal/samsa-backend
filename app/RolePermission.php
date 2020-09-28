@@ -10,4 +10,7 @@ class RolePermission extends Model
     protected $fillable = ['permission_id', 'role_id'];
 
     public $timestamps = false;
+    public function roles(){
+        return $this->hasMany('App\Role');
+    }
 }

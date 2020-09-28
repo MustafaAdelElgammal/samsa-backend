@@ -93,8 +93,10 @@ Route::group(['middleware' => 'api_auth'], function () {
 
     //end
     Route::get('roles', 'RoleController@index');
-
-    Route::resource('roles', 'RoleController');
+    Route::get('roles/{id}', 'RoleController@show');
+    Route::post('roles', 'RoleController@store');
+    Route::delete('roles/{id}', 'RoleController@destroy');
+    Route::put('roles/{id}', 'RoleController@update');
 
     Route::get('government/{country_id}', 'GovernmentController@getGovernments');
     Route::resource('profile', 'UserProfileController');
