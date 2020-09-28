@@ -37,12 +37,20 @@ class RequiredDocumentController extends Controller
      */
     public function store(Request $request)
     {
+        $validator = validator($request->all(), [
+            "name" => "required|unique:required_documents,name",
+            "type" => 'required'
+        ]);
+
+        if ($validator->fails()) {
+            return responseJson(0, $validator->errors()->getMessages(), "");
+        }
         try {
             RequiredDocument::create($request->all());   
         } catch (\Exception $th) {
             return responseJson(0, $th->getMessage());
         }
-        return responseJson(1, __('done'));
+        return responseJson(1, __('data created successfully'),"");
     }
 
     /**
@@ -52,7 +60,11 @@ class RequiredDocumentController extends Controller
      */
     public function show($id)
     {
-        return view('adminsion::required_documents.show');
+        $requiredDocuments = RequiredDocument::find($id);
+        if (!$requiredDocuments) {
+            return responseJson(0, __('data not found'), '');
+        }
+        return responseJson(1, "ok", $requiredDocuments);
     }
 
     /**
@@ -88,18 +100,22 @@ class RequiredDocumentController extends Controller
      * @param int $id
      * @return Response
      */
-    public function destroy( $resource)
+    public function destroy( $id)
     {  
-        $resource = RequiredDocument::find($resource); 
+        $resource = RequiredDocument::find($id); 
+        if(!$resource){
+            return responseJson(0, __('data not found'), '');
+        }
         try {
             /*if ($requiredDocument->studentRequiredDocuments()->count() > 0)  {
                 notify()->error(__('cant delete data depend on data'), "", "bottomLeft"); 
                 return redirect()->route('required_documents.index');
             }*/ 
             $resource->delete(); 
+
+            return responseJson(1, __('deleted successfully'), '');
         } catch (\Exception $th) {
             return responseJson(0, $th->getMessage());
         }
-        return responseJson(1, __('done'));
     }
 }

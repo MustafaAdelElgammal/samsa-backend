@@ -16,7 +16,7 @@ class MilitaryStatusController extends Controller {
      */
     public function index() {
         $militaryStatus = MilitaryStatus::OrderBy('created_at', 'desc')->get();
-        return view('military::military_status.index', compact('militaryStatus'));
+        return responseJson(1, "ok", $militaryStatus);
     }
 
     /**
@@ -32,17 +32,21 @@ class MilitaryStatusController extends Controller {
      * @param Request $request
      * @return Response
      */
-    public function store(MilitaryStatusRequest $request) {
-        try {
-            $status = MilitaryStatus ::create($request->all());
+    public function store(Request $request) {
+        $validator = validator($request->all(), [
+            "name" => "required|unique:military_status,name",
+        ]);
 
-            notfy(__('add military status'), __('add military status'). $status->name, 'fa fa-circle-o');
-            notify()->success("تم حفظ الاعدادات بنجاح", "", "bottomLeft" );
-        } catch (\Exception $th) {
-            notify()->error( $th->getMessage(), "", "bottomLeft" );
-           
+        if ($validator->fails()) {
+            return responseJson(0, $validator->errors()->getMessages(), "");
         }
-        return redirect()->route('military-status.index');
+        try {
+            $status = MilitaryStatus::create($request->all());
+            return responseJson(1, __('data created successfully'), $status);
+
+        } catch (\Exception $ex) {
+            return responseJson(0, $ex->getMessage(), "");
+        }
     }
 
     /**
@@ -51,7 +55,11 @@ class MilitaryStatusController extends Controller {
      * @return Response
      */
     public function show($id) {
-        return view('military::show');
+        $status = MilitaryStatus::find($id);
+        if (!$status) {
+            return responseJson(0, __('data not found'), '');
+        }
+        return responseJson(1, "ok", $status);
     }
 
     /**
@@ -74,22 +82,26 @@ class MilitaryStatusController extends Controller {
      * @param int $id
      * @return Response
      */
-    public function update(MilitaryStatusRequest $request, $id) {
+    public function update(Request $request, $id) {
+        $validator = validator($request->all(), [
+            "name" => "required|unique:military_status,name,".$id,
+        ]);
+
+        if ($validator->fails()) {
+            return responseJson(0, $validator->errors()->getMessages(), "");
+        }
         try {
             $militaryStatus = MilitaryStatus::find($id);
 
             if (!$militaryStatus) {
-                notify()->warning(__('data not found'), "", "bottomLeft");
-                return redirect()->route('military-status.index');
+                return responseJson(0, __('data not found'), '');
             } else {
 
                 $militaryStatus->update($request->all());
-                notify()->success(__('data updated successfully'), "", "bottomLeft");
-                return redirect()->route('military-status.index');
+                return responseJson(1, __('data updated successfully'), $militaryStatus);
             }
-        } catch (\Exception $th) {
-            notify()->error( $th->getMessage(), "", "bottomLeft");
-            return redirect()->route('military-status.index');
+        } catch (\Exception $ex) {
+            return responseJson(0, $ex->getMessage(), "");
         }
     }
 
@@ -103,15 +115,18 @@ class MilitaryStatusController extends Controller {
             $militaryStatus = MilitaryStatus::find($id);
 
             if (!$militaryStatus) {
-                notify()->warning(__('data not found'), "", "bottomLeft");
-                return redirect()->route('military-status.index');
+                return responseJson(0, __('data not found'), '');
             }
+            $countApplications = $militaryStatus->applications->count();
+            $countStudents = $militaryStatus->students->count();
+            if($countApplications > 0 && $countStudents > 0)
+            return responseJson(0, __('this item can not be deleted'), $militaryStatus->fresh());
+
             $militaryStatus->delete();
-            notify()->success(__('data deleted successfully'), "", "bottomLeft");
-            return redirect()->route('military-status.index');
+            return responseJson(1, __('deleted successfully'), '');
+
         } catch (\Exception $ex) {
-            notify()->error($ex->getMessage(), "", "bottomLeft");
-            return redirect()->route('military-status.index');
+            return responseJson(0, $ex->getMessage(), "");
         }
     }
 

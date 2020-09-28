@@ -14,7 +14,7 @@ class RequiredDocument extends Model
         'notes'
     ];
     
-    
+    protected $hidden = ['created_at', 'updated_at'];
     public function studentRequiredDocuments() {
         return $this->hasMany("Modules\Adminsion\Entities\StudentRequiredDocument", 'required_document_id');
     } 

@@ -16,8 +16,8 @@ class MilitaryAreaSubmisionController extends Controller
      */
     public function index()
     {
-        $rows = MilitaryAreaSubmision::orderBy('created_at', 'DESC')->get();
-        return view('military::military_submission.index', compact('rows'));
+        $rows = MilitaryAreaSubmision::with(['militaryArea'])->orderBy('created_at', 'DESC')->get();
+        return responseJson(1, "ok", $rows);
     }
 
     /**
@@ -34,31 +34,24 @@ class MilitaryAreaSubmisionController extends Controller
      * @param Request $request
      * @return Response
      */
-    public function store(MilitaryAreaSubmisionRequest $request)
+    public function store(Request $request)
     {
-        try {
+        $validator = validator($request->all(), [
+            'military_area_id' => 'required|exists:military_areas,id|unique:military_area_submision,military_area_id',
+            'government_id' => 'required|exists:governments,id',
+        ]);
 
-            $validatedData = $request->validate([
-                'military_area_id' => 'required',
-                'government_id' => 'required',
-                'city_id' => 'required',
-            ]);
-
-            foreach ($request->city_id as $city) {
-                $status = MilitaryAreaSubmision::create([
-                    "military_area_id" => $request->military_area_id,
-                    "government_id" => $request->government_id,
-                    "city_id" => $city,
-                    "notes" => $request->notes,
-                ]);
-            }
-
-            notfy(__('add military area submission'), __('add military area submission'), "fa fa-map-marker");
-            notify()->success(__('process has been success'), "", "bottomLeft");
-        } catch (\Exception $th) {
-            notify()->error($th->getMessage(), "", "bottomLeft");
+        if ($validator->fails()) {
+            return responseJson(0, $validator->errors()->getMessages(), "");
         }
-        return redirect()->route('military-area-submission.index');
+
+        try {
+            $status = MilitaryAreaSubmision::create($request->all());
+            return responseJson(1, __('data created successfully'), "");
+
+        }  catch (\Exception $ex) {
+            return responseJson(0, $ex->getMessage(), "");
+        }
     }
 
     /**
@@ -68,7 +61,13 @@ class MilitaryAreaSubmisionController extends Controller
      */
     public function show($id)
     {
-        return view('military::show');
+        $status = MilitaryAreaSubmision::find($id);
+        $status->government;
+        $status->militaryArea;
+        if (!$status) {
+            return responseJson(0, __('data not found'), '');
+        }
+        return responseJson(1, "ok", $status);
     }
 
     /**
@@ -92,22 +91,26 @@ class MilitaryAreaSubmisionController extends Controller
      * @param int $id
      * @return Response
      */
-    public function update(MilitaryAreaSubmisionRequest $request, $id)
+    public function update(Request $request, $id)
     {
+        $validator = validator($request->all(), [
+            'military_area_id' => 'required|exists:military_areas,id|unique:military_area_submision,military_area_id,'.$id,
+            'government_id' => 'required|exists:governments,id',
+        ]);
+
+        if ($validator->fails()) {
+            return responseJson(0, $validator->errors()->getMessages(), "");
+        }
         try {
             $status = MilitaryAreaSubmision::find($id);
             if (!$status) {
-                notify()->warning( __('data not found'), "", "bottomLeft" );
-                return redirect()->route('military-area-submission.index');
+                return responseJson(0, __('data not found'), '');
             } else {
                 $status->update($request->all());
-                notfy(__('military area updated'), __('military area updated ') . $status->name, 'fa fa-building-o');
-                notify()->success(  __('data updated successfully'), "", "bottomLeft");
-                return redirect()->route('military-area-submission.index');
+                return responseJson(1, __('data updated successfully'), $militaryArea);
             }
-        } catch (\Exception $th) {
-            notify()->error( $th->getMessage(), "", "bottomLeft");
-            return redirect()->route('military-area-submission.index');
+        } catch (\Exception $ex) {
+            return responseJson(0, $ex->getMessage(), "");
         }
     }
 
@@ -121,17 +124,13 @@ class MilitaryAreaSubmisionController extends Controller
         $status = MilitaryAreaSubmision::find($id);
         try {
             if (!$status) {
-                notify()->warning( __('data not found'), "", "bottomLeft" );
-                return redirect()->route('military-area-submission.index');
+                return responseJson(0, __('data not found'), '');
             } else {
                 $status->delete();
-                notify()->success(__('data deleted successfully'), "", "bottomLeft");
-                notfy(__('military area deleted'), __('military area deleted ') . $status->name, 'fa fa-building-o');
-                return redirect()->route('military-area-submission.index');
+                return responseJson(1, __('deleted successfully'), '');
             }
         } catch (\Exception $ex) {
-            notify()->error( $ex->getMessage(), "", "bottomLeft");
-            return redirect()->route('military-area-submission.index');
+            return responseJson(0, $ex->getMessage(), "");
         }
     }
 }

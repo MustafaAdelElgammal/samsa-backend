@@ -54,7 +54,7 @@ class MilitaryAreasController extends Controller
                 return redirect()->route('military-areas.index');
             }
         } catch (\Exception $ex) {
-            return responseJson(0, "", $ex->getMessage());
+            return responseJson(0, $ex->getMessage(), "");
         }
     }
 
@@ -114,7 +114,7 @@ class MilitaryAreasController extends Controller
                 return responseJson(1, __('data updated successfully'), $militaryArea);
             }
         } catch (\Exception $ex) {
-            return responseJson(0, "", $ex->getMessage());
+            return responseJson(0, $ex->getMessage(), "");
         }
     }
 
@@ -129,19 +129,15 @@ class MilitaryAreasController extends Controller
         $coutAreas = $militaryArea->militaryAreaSubmission->count();
         try {
             if (!$militaryArea) {
-                notify()->warning( __('data not found'), "", "bottomLeft");
-                return redirect()->route('military-areas.index');
+                return responseJson(0, __('data not found'), '');
             }  if(isset($coutAreas) && $coutAreas > 0 ){
-                notify()->error(__('this item can not be deleted'),"","bottomLeft");
-                return redirect()->route('military-areas.index');
+                return responseJson(0, __('this item can not be deleted'), $country->fresh());
             }else{
                 $militaryArea->delete();
-                notify()->success( __('data deleted successsfully'),"","bottomLeft");
-                return redirect()->route('military-areas.index');
+                return responseJson(1, __('deleted successfully'), '');
             }
         } catch (\Exception $ex) {
-            notify()->error( $ex->getMessage(), "", "bottomLeft");
-            return redirect()->route('military-areas.index');
+            return responseJson(0, $ex->getMessage(), "");
         }
     }
 }

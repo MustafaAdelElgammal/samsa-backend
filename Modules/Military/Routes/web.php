@@ -12,9 +12,12 @@
  */
 
 Route::group(['middleware' => 'auth:web'], function() {
-    Route::resource('military-status', 'MilitaryStatusController');
-    Route::resource('military-areas', 'MilitaryAreasController');
-    Route::resource('military-area-submission', 'MilitaryAreaSubmisionController');
+  // 
+  Route::resource('military-status', 'MilitaryStatusController');
+  Route::resource('military-areas', 'MilitaryAreasController');
+  Route::resource('military-area-submission', 'MilitaryAreaSubmisionController');
+  // 
+
     Route::resource('military-status-reason', 'MilitaryStatusSettingController');
     Route::get('military/setting', 'MilitarySettingController@index');
     Route::resource('military-course', 'MilitaryCourseController');

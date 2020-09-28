@@ -18,9 +18,10 @@ Route::group(['middleware' => 'api_auth'], function () {
     Route::prefix('adminision')->group(function() { 
         // servicecs routes
         Route::get('required_documents', 'RequiredDocumentController@index');
-        Route::post('required_documents/store', 'RequiredDocumentController@store');
-        Route::post('required_documents/update/{id}', 'RequiredDocumentController@update');
-        Route::post('required_documents/delete/{id}', 'RequiredDocumentController@destroy'); 
+        Route::get('required_documents/{id}', 'RequiredDocumentController@show');
+        Route::post('required_documents', 'RequiredDocumentController@store');
+        Route::put('required_documents/{id}', 'RequiredDocumentController@update');
+        Route::delete('required_documents/{id}', 'RequiredDocumentController@destroy'); 
 
         // ApplicationRequired  routes
         Route::get('application_requireds', 'ApplicationRequiredController@index');
